@@ -4,3 +4,6 @@
 # config
 .env
 sqitch.conf
+
+# scripts
+*.sh
