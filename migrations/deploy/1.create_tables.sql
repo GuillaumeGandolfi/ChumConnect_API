@@ -35,4 +35,11 @@ CREATE TABLE IF NOT EXISTS "event" (
     organizer_id int REFERENCES user(id)
 );
 
+-- Création de la table d'association "Event_has_participants"
+CREATE TABLE IF NOT EXISTS "event_has_participants" (
+    event_id int REFERENCES event(id),
+    participant_id int REFERENCES user(id),
+    PRIMARY KEY (event_id, participant_id)
+);
+
 COMMIT;
