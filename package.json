@@ -1,6 +1,7 @@
 {
   "name": "chumconnect_api",
   "version": "1.0.0",
+  "type": "module",
   "description": "Bienvenue dans la documentation de l'API ChumConnect.",
   "main": "index.js",
   "scripts": {
