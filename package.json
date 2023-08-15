@@ -1,0 +1,22 @@
+{
+  "name": "chumconnect_api",
+  "version": "1.0.0",
+  "description": "Bienvenue dans la documentation de l'API ChumConnect.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/GuillaumeGandolfi/ChumConnect_API.git"
+  },
+  "author": "Guillaume",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GuillaumeGandolfi/ChumConnect_API/issues"
+  },
+  "homepage": "https://github.com/GuillaumeGandolfi/ChumConnect_API#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
