@@ -40,6 +40,51 @@ const userController = {
             res.status(500).json(error.toString());
         }
     },
+
+    // Méthode qui permet de créer un utilisateur
+    createUser: async (req, res) => {
+        try {
+            // On récupère les données envoyées dans le corps de la requête
+            const { email, firstname, lastname, age, localization, password } = req.body;
+            const bodyErrors = [];
+
+            // On vérifie que toutes les données nécessaires sont bien présentes
+            if (!email || !firstname || !lastname || !age || !localization || !password) {
+                bodyErrors.push(`Certains champs ne sont pas renseignés`);
+            }
+
+            // On vérifie aussi si le mail n'est pas déjà utilisé
+            const user = await User.findOne({ where: { email: email } });
+            if (user) {
+                bodyErrors.push(`Un utilisateur avec cet email existe déjà`);
+            }
+
+            // TODO : Imposer une schéma sur le mot de passe
+
+            // On vérifie si on a des erreurs, si oui on les affiche
+            if (bodyErrors.length) {
+                res.status(400).json(bodyErrors);
+            } else {
+                // Création de l'utilisateur
+                const newUser = await User.build({
+                    email,
+                    firstname,
+                    lastname,
+                    age,
+                    localization,
+                    // TODO : Encodé le mot de passe (bcrypt?)
+                    password
+                });
+                // Sauvegarde de l'utilisateur dans la database
+                await newUser.save();
+                // On renvoie l'utilisateur créé
+                res.status(201).json({ newUser });
+            }
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
 };
 
 export default userController;
