@@ -147,7 +147,50 @@ const userController = {
             console.trace(error);
             res.status(500).json(error.toString());
         }
-    }
+    },
+
+    // Méthode permettant d'envoyer une demande d'ami
+    sendFriendRequest: async (req, res) => {
+        const userId = req.params.id;
+        const friendId = req.body.friendId;
+
+        try {
+            const user = await User.findByPk(userId);
+            const friend = await User.findByPk(friendId);
+
+            if (!user || !friend) {
+                res.status(404).json(`Utilisateur ou ami introuvable`);
+            }
+
+            // On vérifie que l'utilisateur n'est pas déjà ami avec la personne
+            const isFriend = await user.hasFriend(friend);
+            if (isFriend) {
+                res.status(400).json(`Vous êtes déjà ami avec cette personne`);
+            }
+
+            // On vérifie que l'utilisateur n'a pas déjà envoyé une demande d'ami à cette personne
+            const isFriendRequestSent = await user.hasFriendRequestSent(friend);
+            if (isFriendRequestSent) {
+                res.status(400).json(`Vous avez déjà envoyé une demande d'ami à cette personne`);
+            }
+
+            // On vérifie que l'utilisateur n'a pas déjà reçu une demande d'ami de cette personne
+            const isFriendRequestReceived = await user.hasFriendRequestReceived(friend);
+            if (isFriendRequestReceived) {
+                res.status(400).json(`Vous avez déjà reçu une demande d'ami de cette personne`);
+            }
+
+            // On envoie la demande d'ami
+            await user.addFriendRequestSent(friend);
+            await friend.addFriendRequestReceived(user);
+
+            res.status(200).json(`La demande d'ami a bien été envoyée`);
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
 };
 
 export default userController;
