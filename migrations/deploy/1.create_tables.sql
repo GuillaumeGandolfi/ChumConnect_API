@@ -49,12 +49,30 @@ CREATE TABLE IF NOT EXISTS "event_has_participants" (
     updated_at TIMESTAMPTZ
 );
 
--- Création de la table d'association "User_has_friends"
-CREATE TABLE IF NOT EXISTS "user_has_friends" (
+-- Création de la table d'association "User_has_friend"
+CREATE TABLE IF NOT EXISTS "user_has_friend" (
     user_id int REFERENCES "user"(id),
     friend_id int REFERENCES "user"(id),
     date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (user_id, friend_id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+
+-- Création de la table d'association "Event_has_participant"
+CREATE TABLE IF NOT EXISTS "event_has_participant" (
+    event_id int REFERENCES event(id),
+    participant_id int REFERENCES "user"(id),
+    PRIMARY KEY (event_id, participant_id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+
+-- Création de la table d'association "User_has_event"
+CREATE TABLE IF NOT EXISTS "user_has_event" (
+    user_id int REFERENCES "user"(id),
+    event_id int REFERENCES event(id),
+    PRIMARY KEY (user_id, event_id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ
 );
