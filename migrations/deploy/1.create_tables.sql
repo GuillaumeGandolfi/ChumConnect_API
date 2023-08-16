@@ -21,7 +21,9 @@ CREATE TABLE IF NOT EXISTS "user" (
 -- Création de la table "Catégorie"
 CREATE TABLE IF NOT EXISTS "category" (
     id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    label TEXT NOT NULL UNIQUE
+    label TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
 );
 
 -- Création de la table "Evenement"
@@ -33,14 +35,28 @@ CREATE TABLE IF NOT EXISTS "event" (
     hour TIMESTAMPTZ NOT NULL,
     location text NOT NULL,
     category_id int REFERENCES category(id),
-    organizer_id int REFERENCES "user"(id)
+    organizer_id int REFERENCES "user"(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
 );
 
 -- Création de la table d'association "Event_has_participants"
 CREATE TABLE IF NOT EXISTS "event_has_participants" (
     event_id int REFERENCES event(id),
     participant_id int REFERENCES "user"(id),
-    PRIMARY KEY (event_id, participant_id)
+    PRIMARY KEY (event_id, participant_id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+
+-- Création de la table d'association "User_has_friends"
+CREATE TABLE IF NOT EXISTS "user_has_friends" (
+    user_id int REFERENCES "user"(id),
+    friend_id int REFERENCES "user"(id),
+    date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (user_id, friend_id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
 );
 
 COMMIT;
