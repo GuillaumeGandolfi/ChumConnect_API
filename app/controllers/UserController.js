@@ -201,21 +201,18 @@ const userController = {
             const user = await User.findByPk(userId);
             if (!user) {
                 res.status(404).json(`Utilisateur introuvable`);
-                return;
             }
 
             // Récupérer l'ami dont la demande est acceptée
             const friend = await User.findByPk(friendId);
             if (!friend) {
                 res.status(404).json(`Ami introuvable`);
-                return;
             }
 
             // Vérifier que l'ami a envoyé une demande à l'utilisateur
             const isFriendRequestReceived = await friend.hasFriendRequestReceived(user);
             if (!isFriendRequestReceived) {
                 res.status(400).json(`Aucune demande d'ami reçue de cet ami`);
-                return;
             }
 
             // Accepter la demande d'ami
@@ -227,6 +224,36 @@ const userController = {
             await friend.removeFriendRequestSent(user);
 
             res.status(200).json(`La demande d'ami a été acceptée`);
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
+    // Méthode permettant de refuser une demande d'ami
+    refuseFriendRequest: async (req, res) => {
+        const userId = req.params.id;
+        const friendId = req.body.friendId;
+
+        try {
+            const user = await User.findByPk(userId);
+            const friend = await User.findByPk(friendId);
+
+            if (!user || !friend) {
+                res.status(404).json(`Utilisateur ou ami introuvable`);
+            }
+
+            // On vérifie que l'utilisateur a bien reçu une demande d'ami de la personne
+            const isFriendRequestReceived = await user.hasFriendRequestReceived(friend);
+            if (!isFriendRequestReceived) {
+                res.status(400).json(`Aucune demande d'ami reçue de cet ami`);
+            }
+
+            // On supprime la demande d'ami en attente
+            await user.removeFriendRequestReceived(friend);
+            await friend.removeFriendRequestSent(user);
+
+            res.status(200).json(`La demande d'ami a été refusée`);
         } catch (error) {
             console.trace(error);
             res.status(500).json(error.toString());
