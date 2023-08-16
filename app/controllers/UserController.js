@@ -85,6 +85,69 @@ const userController = {
             res.status(500).json(error.toString());
         }
     },
+
+    // Méthode qui permet de modifier un utilisateur
+    updateUser: async (req, res) => {
+        const userId = req.params.id;
+
+        try {
+            const user = await User.findByPk(userId);
+            if (!user) {
+                res.status(404).json(`Cet utilisateur n'existe pas`);
+            } else {
+                // On récupère les nouvelles données dans le body 
+                const { email, firstname, lastname, age, localization, password } = req.body;
+
+                // On ne change que les données renseignées
+                if (email) {
+                    user.email = email;
+                }
+                if (firstname) {
+                    user.firstname = firstname;
+                }
+                if (lastname) {
+                    user.lastname = lastname;
+                }
+                if (age) {
+                    user.age = age;
+                }
+                if (localization) {
+                    user.localization = localization;
+                }
+                if (password) {
+                    // TODO : Ne pas oublier le schéma du mot de passe
+                    // TODO : Chiffrer le mot de passe avant de l'insérer en database
+                    user.password = password;
+                }
+
+                // On enregistre les modifications
+                await user.save();
+                res.status(200).json(user);
+            }
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
+    // Méthode qui permet de supprimer un utilisateur
+    deleteUser: async (req, res) => {
+        const userId = req.params.id;
+
+        try {
+            const user = await User.findByPk(userId);
+            if (!user) {
+                res.status(404).json(`Cet utilisateur n'existe pas`);
+            } else {
+                // On utilise destroy() pour supprimer l'enregistrement dans la database
+                await user.destroy();
+                res.status(200).json(`L'utilisateur a bien été supprimé`);
+            }
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    }
 };
 
 export default userController;
