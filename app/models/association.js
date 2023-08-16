@@ -10,6 +10,41 @@ User.belongsToMany(User, {
     through: "user_has_friend"
 });
 
-// Association : User <-> Event (Participation)
+// Association : User <-> Event (Organizer)
+User.hasMany(Event, {
+    foreignKey: "organizer_id",
+    as: "createdEvents"
+});
 
+Event.belongsTo(User, {
+    foreignKey: "organizer_id",
+    as: "organizer"
+});
 
+// Association : User <-> Event (Participant)
+User.belongsToMany(Event, {
+    foreignKey: "user_id",
+    otherKey: "event_id",
+    as: "participatedEvents",
+    through: "user_has_event"
+});
+
+Event.belongsToMany(User, {
+    foreignKey: "event_id",
+    otherKey: "participant_id",
+    as: "participants",
+    through: "uevent_has_participant"
+});
+
+// Association : Event <-> Category
+Event.belongsTo(Category, {
+    foreignKey: "category_id",
+    as: "category"
+});
+
+Category.hasMany(Event, {
+    foreignKey: "category_id",
+    as: "events"
+});
+
+export default { User, Event, Category };
