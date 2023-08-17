@@ -1,5 +1,7 @@
 // Import du ou des models nécessaires
-import User from "../models/User.js";
+import association from '../models/association.js';
+
+const User = association.User;
 
 // On créer un objet qui contiendra toutes les méthodes
 const userController = {

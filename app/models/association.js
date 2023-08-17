@@ -1,6 +1,6 @@
-import User from "./User";
-import Event from "./Event";
-import Category from "./Category";
+import User from "./User.js";
+import Event from "./Event.js";
+import Category from "./Category.js";
 
 // Association : User <-> User (Friend)
 User.belongsToMany(User, {
