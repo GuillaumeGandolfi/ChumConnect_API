@@ -1,10 +1,19 @@
 // Import du ou des models nécessaires
 import association from '../models/association.js';
+const User = association.User;
 
 // Import de bcrypt pour le hashage du mot de passe
 import bcrypt from 'bcrypt';
 
-const User = association.User;
+// Import de joi pour la validation des données
+import Joi from 'joi';
+
+// Schéma de validation pour le mot de passe et l'email
+const schema = Joi.object({
+    email: Joi.string().pattern(new RegExp('^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')).required(),
+    password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')).required()
+});
+
 
 // On créer un objet qui contiendra toutes les méthodes
 const userController = {
@@ -58,6 +67,12 @@ const userController = {
                 bodyErrors.push(`Certains champs ne sont pas renseignés`);
             }
 
+            // On vérifie que le schéma de l'email et du mot de passe est respecté
+            const { error } = schema.validate({ email, password });
+            if (error) {
+                bodyErrors.push(`L'email ou le mot de passe ne respecte pas le schéma`);
+            }
+
             // On vérifie aussi si le mail n'est pas déjà utilisé
             const user = await User.findOne({ where: { email: email } });
             if (user) {
@@ -103,6 +118,12 @@ const userController = {
             } else {
                 // On récupère les nouvelles données dans le body 
                 const { email, firstname, lastname, age, localization, password } = req.body;
+
+                // On vérifie que le schéma de l'email et du mot de passe est respecté
+                const { error } = schema.validate({ email, password });
+                if (error) {
+                    res.status(400).json(`L'email ou le mot de passe ne respecte pas le schéma`);
+                }
 
                 // On ne change que les données renseignées
                 if (email) {
