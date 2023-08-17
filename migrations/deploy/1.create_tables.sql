@@ -50,6 +50,26 @@ CREATE TABLE IF NOT EXISTS "user_has_friend" (
     updated_at TIMESTAMPTZ
 );
 
+-- Création de la table d'association "User_Friend_Request_Sent"
+CREATE TABLE IF NOT EXISTS "user_friend_request_sent" (
+    sender_id int REFERENCES "user"(id),
+    receiver_id int REFERENCES "user"(id),
+    date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (sender_id, receiver_id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+
+-- Création de la table d'association "User_Friend_Request_Received"
+CREATE TABLE IF NOT EXISTS "user_friend_request_received" (
+    receiver_id int REFERENCES "user"(id),
+    sender_id int REFERENCES "user"(id),
+    date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (receiver_id, sender_id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+
 -- Création de la table d'association "Event_has_participant"
 CREATE TABLE IF NOT EXISTS "event_has_participant" (
     event_id int REFERENCES event(id),
@@ -75,6 +95,6 @@ CREATE TABLE IF NOT EXISTS "event_has_category" (
     PRIMARY KEY (event_id, category_id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ
-)
+);
 
 COMMIT;
