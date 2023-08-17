@@ -1,5 +1,5 @@
 // Import du ou des models nécessaires
-import { User } from "../models/User";
+import User from "../models/User.js";
 
 // On créer un objet qui contiendra toutes les méthodes
 const userController = {

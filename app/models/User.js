@@ -39,6 +39,7 @@ User.init({
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,
+        field: 'isadmin'
     },
 
 },

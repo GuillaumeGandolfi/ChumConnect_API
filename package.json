@@ -18,8 +18,11 @@
   },
   "homepage": "https://github.com/GuillaumeGandolfi/ChumConnect_API#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "multer": "^1.4.5-lts.1",
     "pg": "^8.11.2",
     "sequelize": "^6.32.1"
   }
