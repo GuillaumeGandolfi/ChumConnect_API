@@ -260,6 +260,36 @@ const userController = {
         }
     },
 
+    // Méthode permettant de supprimer un ami
+    deleteFriend: async (req, res) => {
+        const userId = req.params.id;
+        const friendId = req.body.friendId;
+
+        try {
+            const user = await User.findByPk(userId);
+            const friend = await User.findByPk(friendId);
+
+            if (!user || !friend) {
+                res.status(404).json(`Utilisateur ou ami introuvable`);
+            }
+
+            // On vérifie que l'utilisateur est bien ami avec la personne
+            const isFriend = await user.hasFriend(friend);
+            if (!isFriend) {
+                res.status(400).json(`Vous n'êtes pas ami avec cette personne`);
+            }
+
+            // On supprime l'ami
+            await user.removeFriend(friend);
+            await friend.removeFriend(user);
+
+            res.status(200).json(`L'ami a bien été supprimé`);
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
 };
 
 export default userController;
