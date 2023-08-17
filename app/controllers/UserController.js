@@ -1,6 +1,9 @@
 // Import du ou des models nécessaires
 import association from '../models/association.js';
 
+// Import de bcrypt pour le hashage du mot de passe
+import bcrypt from 'bcrypt';
+
 const User = association.User;
 
 // On créer un objet qui contiendra toutes les méthodes
@@ -67,6 +70,8 @@ const userController = {
             if (bodyErrors.length) {
                 res.status(400).json(bodyErrors);
             } else {
+                // hashage du mot de passe 
+                const encodedPassword = bcrypt.hashSync(password, 10);
                 // Création de l'utilisateur
                 const newUser = await User.build({
                     email,
@@ -74,8 +79,7 @@ const userController = {
                     lastname,
                     age,
                     localization,
-                    // TODO : Encodé le mot de passe (bcrypt?)
-                    password
+                    password: encodedPassword
                 });
                 // Sauvegarde de l'utilisateur dans la database
                 await newUser.save();
@@ -118,8 +122,8 @@ const userController = {
                 }
                 if (password) {
                     // TODO : Ne pas oublier le schéma du mot de passe
-                    // TODO : Chiffrer le mot de passe avant de l'insérer en database
-                    user.password = password;
+                    const encodedPassword = bcrypt.hashSync(password, 10);
+                    user.password = encodedPassword;
                 }
 
                 // On enregistre les modifications
