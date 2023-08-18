@@ -63,4 +63,60 @@ const eventController = {
         }
     },
 
+    // Modification d'un événement
+    updateEvent: async (req, res) => {
+        const eventId = req.params.id;
+
+        try {
+            const event = await Event.findByPk(eventId);
+            if (!event) {
+                res.status(404).json(`Cet événement n'existe pas`);
+            } else {
+                const { title, description, date, hour, location } = req.body;
+
+                if (title) {
+                    event.title = title;
+                }
+                if (description) {
+                    event.description = description;
+                }
+                if (date) {
+                    event.date = date;
+                }
+                if (hour) {
+                    event.hour = hour;
+                }
+                if (location) {
+                    event.location = location;
+                }
+
+                await event.save();
+                res.status(200).json(event);
+            }
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
+    // Suppression d'un événement
+    deleteEvent: async (req, res) => {
+        const eventId = req.params.id;
+
+        try {
+            const event = await Event.findByPk(eventId);
+            if (!event) {
+                res.status(404).json(`Cet événement n'existe pas`);
+            } else {
+                await event.destroy();
+                res.status(200).json(`L'événement a bien été supprimé`);
+            }
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
+    // TODO : Ajout d'un participant à un événement
+
 }
