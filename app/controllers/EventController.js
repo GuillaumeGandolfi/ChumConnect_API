@@ -117,6 +117,54 @@ const eventController = {
         }
     },
 
-    // TODO : Ajout d'un participant à un événement
+    // Ajout d'un participant à un événement
+    addParticipantToEvent: async (req, res) => {
+        const eventId = req.params.id;
+        const participantId = req.body.participantId;
+
+        try {
+            const event = await Event.findByPk(eventId);
+            const participant = await User.findByPk(participantId);
+
+            if (!event || !participant) {
+                res.status(404).json(`Evénement ou Utilisateur introuvable`);
+            }
+
+            await event.addParticipant(participant);
+            res.status(200).json(`Participant ajouté à l'événement`);
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
+    // Suppression d'un participant à un événement
+    removeParticipantFromEvent: async (req, res) => {
+        const eventId = req.params.id;
+        const participantId = req.body.participantId;
+
+        try {
+            const event = await Event.findByPk(eventId);
+            const participant = await User.findByPk(participantId);
+
+            if (!event || !participant) {
+                res.status(404).json(`Evénement ou Utilisateur introuvable`);
+            }
+
+            await event.removeParticipant(participant);
+            res.status(200).json(`Participant supprimé de l'événement`);
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
+    // TODO : Rechercher événement par date 
+    // TODO : Rechercher événement par catégorie
+    // TODO : Rechercher événement par lieu
+    // TODO : Inviter un ami à un événement
+    // TODO : Statistiques sur les événements ??
+
+
 
 }
