@@ -8,6 +8,10 @@ import cors from "cors";
 import multer from "multer";
 const bodyParser = multer();
 
+// Import de la documentation swagger
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "./documentation/swagger.json" assert { type: "json" };
+
 // import session from "express-session";
 // TODO : Faire un middleware de session
 
@@ -24,5 +28,8 @@ app.set('views', './app/view'); */
 
 // On utilise les routes
 app.use(router);
+
+// On utilise la documentation swagger
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 export default app;
