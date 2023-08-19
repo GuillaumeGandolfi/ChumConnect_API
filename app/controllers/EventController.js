@@ -1,5 +1,9 @@
 import association from '../models/association.js';
 const Event = association.Event;
+const Category = association.Category;
+
+// Import de l'objet 'op' de Sequelize qui sert à créer des opérateurs de comparaison
+import { Op } from 'sequelize';
 
 const eventController = {
     // Récupération de tous les événements
@@ -159,12 +163,78 @@ const eventController = {
         }
     },
 
-    // TODO : Rechercher événement par date 
-    // TODO : Rechercher événement par catégorie
+    getEventsByDate: async (req, res) => {
+        // On peut récupérer une date de début et une date de fin
+        const dateStart = req.body.dateStart;
+        const dateEnd = req.body.dateEnd;
+
+        try {
+            const events = await Event.findAll({
+                where: {
+                    date: {
+                        [Op.between]: [dateStart, dateEnd]
+                    }
+                }
+            });
+
+            if (!events) {
+                res.status(404).json(`Aucun événement trouvé`);
+            }
+            res.status(200).json(events);
+
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
+    getEventsByCategory: async (req, res) => {
+        const categoryId = req.params.id;
+
+        try {
+            const category = await Category.findByPk(categoryId, {
+                include: [
+                    { association: "events" }
+                ]
+            });
+
+            if (!category) {
+                res.status(404).json(`Catégorie introuvable`);
+            } else {
+                res.status(200).json(category);
+            }
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
+    getEventsByLocation: async (req, res) => {
+        const location = req.body.location;
+
+        try {
+            const events = await Event.findAll({
+                where: {
+                    location: {
+                        [Op.like]: `%${location}%`
+                    }
+                }
+            });
+
+            if (!events) {
+                res.status(404).json(`Aucun événement trouvé`);
+            } else {
+                res.status(200).json(events);
+            }
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    }
     // TODO : Rechercher événement par lieu
     // TODO : Inviter un ami à un événement
     // TODO : Statistiques sur les événements ??
 
-
-
 }
+
+export default eventController;
