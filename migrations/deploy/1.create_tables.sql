@@ -97,4 +97,16 @@ CREATE TABLE IF NOT EXISTS "event_has_category" (
     updated_at TIMESTAMPTZ
 );
 
+-- Création de la table d'association "Event_invitation", permettant à un organisateur
+-- d'envoyer une invitation à son événement à un ami
+CREATE TABLE IF NOT EXISTS "event_invitation" (
+    event_id int REFERENCES event(id),
+    organizer_id int REFERENCES "user"(id),
+    invited_user_id int REFERENCES "user"(id),
+    PRIMARY KEY (event_id, organizer_id, invited_user_id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+
+
 COMMIT;

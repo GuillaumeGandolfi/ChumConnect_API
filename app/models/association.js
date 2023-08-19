@@ -63,4 +63,19 @@ Category.hasMany(Event, {
     as: "events"
 });
 
+// Association : User <-> Event (Invitation Sent By Organizer)
+User.belongsToMany(Event, {
+    foreignKey: "organizer_id",
+    otherKey: "event_id",
+    as: "invitationSent",
+    through: "event_invitation"
+});
+
+Event.belongsToMany(User, {
+    foreignKey: "event_id",
+    otherKey: "invited_user_id",
+    as: "invitationReceived",
+    through: "event_invitation"
+});
+
 export default { User, Event, Category };

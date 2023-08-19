@@ -230,8 +230,9 @@ const eventController = {
             console.trace(error);
             res.status(500).json(error.toString());
         }
-    }
-    // TODO : Rechercher événement par lieu
+    },
+
+
     // TODO : Inviter un ami à un événement
     // TODO : Statistiques sur les événements ??
 
