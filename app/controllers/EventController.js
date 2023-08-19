@@ -1,6 +1,6 @@
 import association from '../models/association.js';
-const Event = association.Event;
-const Category = association.Category;
+// Destructuring
+const { Event, Category, User } = association;
 
 // Import de l'objet 'op' de Sequelize qui sert à créer des opérateurs de comparaison
 import { Op } from 'sequelize';
@@ -232,8 +232,47 @@ const eventController = {
         }
     },
 
+    // Méthode permettant à un organisateur d'événement d'envoyer une invitation à ses amis
+    sendInvitations: async (req, res) => {
+        const eventId = req.params.id;
+        const organizerId = req.body.organizerId;
+        const invitedFriendId = req.body.invitedFriendId;
 
-    // TODO : Inviter un ami à un événement
+        try {
+            // On vérifie que l'utilisateur est bien organisateur de l'événement 
+            const event = await Event.findOne({
+                where: {
+                    id: eventId,
+                    organizerId: organizerId
+                }
+            });
+            if (!event) {
+                res.status(404).json(`Cet événement n'existe pas ou vous n'êtes pas l'organisateur`);
+            }
+
+            // On vérifie que l'ami invité existe bien
+            const invitedFriend = await User.findByPk(invitedFriendId);
+            if (!invitedFriend) {
+                res.status(404).json(`Cet ami n'existe pas`);
+            }
+
+            // On vérifie que l'ami invité n'est pas déjà participant à l'événement
+            const isParticipant = await event.hasParticipant(invitedFriend);
+            if (isParticipant) {
+                res.status(400).json(`Cet ami est déjà participant à l'événement`);
+            }
+
+            // On ajoute l'ami (ou les amis) invité à l'événement
+            await event.addParticipant(invitedFriend);
+            res.status(200).json(`Invitation envoyée avec succès`);
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
+
+    // TODO : Méthode permettant de répondre à une invitation (par l'ami invité)
     // TODO : Statistiques sur les événements ??
 
 }
