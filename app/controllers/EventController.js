@@ -271,7 +271,6 @@ const eventController = {
         }
     },
 
-
     // TODO : Méthode permettant de répondre à une invitation (par l'ami invité)
     // TODO : Statistiques sur les événements ??
 
