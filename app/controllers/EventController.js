@@ -287,7 +287,43 @@ const eventController = {
             console.trace(error);
             res.status(500).json(error.toString());
         }
-    }
+    },
+
+    // Méthode permettant à un ami invité de répondre à une invitation
+    acceptEventInvitation: async (req, res) => {
+        const eventId = req.params.id;
+        const invitedFriendId = req.body.invitedFriendId;
+
+        try {
+            // On recherche l'événement 
+            const event = await Event.findByPk(eventId);
+            if (!event) {
+                res.status(404).json(`Cet événement n'existe pas`);
+            }
+
+            // On recherche l'ami invité
+            const invitedFriend = await User.findByPk(invitedFriendId);
+            if (!invitedFriend) {
+                res.status(404).json(`Cet ami invité n'existe pas`);
+            }
+
+            // On vérifie que l'ami invité a bien reçu une invitation pour cet événement
+            const isInvited = await invitedFriend.hasInvitationReceived(event);
+            if (!isInvited) {
+                res.status(404).json(`Vous n'avez pas reçu d'invitation pour cet événement`);
+            }
+
+            // On ajoute l'ami invité à la liste des participants
+            await event.addParticipant(invitedFriend);
+
+            // On supprime l'invitation reçue
+            await invitedFriend.removeInvitationReceived(event);
+            res.status(200).json(`Invitation acceptée`);
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
 
     // TODO : Méthode permettant de répondre à une invitation (par l'ami invité)
     // TODO : Statistiques sur les événements ??
