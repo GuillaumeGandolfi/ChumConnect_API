@@ -233,43 +233,61 @@ const eventController = {
     },
 
     // Méthode permettant à un organisateur d'événement d'envoyer une invitation à ses amis
-    sendInvitations: async (req, res) => {
+    sendEventInvitation: async (req, res) => {
         const eventId = req.params.id;
         const organizerId = req.body.organizerId;
-        const invitedFriendId = req.body.invitedFriendId;
+        const invitedFriendIds = req.body.invitedFriendIds // Tableau d'id des amis invités
 
         try {
-            // On vérifie que l'utilisateur est bien organisateur de l'événement 
+            // On vérifie que l'user est organisateur de l'event
             const event = await Event.findOne({
                 where: {
                     id: eventId,
-                    organizerId: organizerId
+                    organizer_id: organizerId
                 }
             });
             if (!event) {
                 res.status(404).json(`Cet événement n'existe pas ou vous n'êtes pas l'organisateur`);
             }
 
-            // On vérifie que l'ami invité existe bien
-            const invitedFriend = await User.findByPk(invitedFriendId);
-            if (!invitedFriend) {
-                res.status(404).json(`Cet ami n'existe pas`);
-            }
+            // On vérifie que les utilisateurs invités existent
+            const invitedUsers = await User.findAll({
+                where: {
+                    id: invitedFriendIds
+                }
+            });
 
-            // On vérifie que l'ami invité n'est pas déjà participant à l'événement
-            const isParticipant = await event.hasParticipant(invitedFriend);
-            if (isParticipant) {
-                res.status(400).json(`Cet ami est déjà participant à l'événement`);
-            }
+            if (invitedUsers.length !== invitedFriendIds.length) {
+                res.status(404).json(`Un ou plusieurs amis invités n'existent pas`);
+            } else {
+                // On vérifie que les utilisateurs invités sont bien des amis de l'organisateur
+                const areFriends = await User.findAll({
+                    where: {
+                        id: organizerId
+                    },
+                    include: [
+                        {
+                            association: "friends",
+                            where: {
+                                id: invitedFriendIds
+                            }
+                        }
+                    ]
+                });
 
-            // On ajoute l'ami (ou les amis) invité à l'événement
-            await event.addParticipant(invitedFriend);
-            res.status(200).json(`Invitation envoyée avec succès`);
+                if (areFriends.length !== invitedFriendIds.length) {
+                    res.status(404).json(`Un ou plusieurs amis invités ne sont pas vos amis`);
+                } else {
+                    // On envoie l'invitation aux amis
+                    await event.addInvitationSent(invitedUsers);
+                    res.status(200).json(`Invitations envoyées`);
+                }
+            }
         } catch (error) {
             console.trace(error);
             res.status(500).json(error.toString());
         }
-    },
+    }
 
     // TODO : Méthode permettant de répondre à une invitation (par l'ami invité)
     // TODO : Statistiques sur les événements ??
