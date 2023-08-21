@@ -289,7 +289,7 @@ const eventController = {
         }
     },
 
-    // Méthode permettant à un ami invité de répondre à une invitation
+    // Méthode permettant à un ami invité d'accepter à une invitation
     acceptEventInvitation: async (req, res) => {
         const eventId = req.params.id;
         const invitedFriendId = req.body.invitedFriendId;
@@ -325,7 +325,81 @@ const eventController = {
         }
     },
 
-    // TODO : Méthode permettant de répondre à une invitation (par l'ami invité)
+    // Méthode permettant à un ami invité de refuser une invitation
+    rejectEventInvitation: async (req, res) => {
+        const eventId = req.params.id;
+        const invitedFriendId = req.body.invitedFriendId;
+
+        try {
+            // On recherche l'événement 
+            const event = await Event.findByPk(eventId);
+            if (!event) {
+                res.status(404).json(`Cet événement n'existe pas`);
+            }
+
+            // On recherche l'ami invité
+            const invitedFriend = await User.findByPk(invitedFriendId);
+            if (!invitedFriend) {
+                res.status(404).json(`Cet ami invité n'existe pas`);
+            }
+
+            // On vérifie que l'ami invité a bien reçu une invitation pour cet événement
+            const isInvited = await invitedFriend.hasInvitationReceived(event);
+            if (!isInvited) {
+                res.status(404).json(`Vous n'avez pas reçu d'invitation pour cet événement`);
+            }
+
+            // On supprime l'invitation reçue
+            await invitedFriend.removeInvitationReceived(event);
+            res.status(200).json(`Invitation refusée`);
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
+    // Méthode permettant à un organisateur d'annuler une invitation envoyée
+    cancelEventInvitation: async (req, res) => {
+        const eventId = req.params.id;
+        const organizerId = req.body.organizerId;
+        const invitedFriendId = req.body.invitedFriendId;
+
+        try {
+            // On recherche l'événement
+            const event = await Event.findOne({
+                where: {
+                    id: eventId,
+                    organizer_id: organizerId
+                }
+            });
+            if (!event) {
+                res.status(404).json(`Cet événement n'existe pas ou vous n'êtes pas l'organisateur`);
+            }
+
+            // On recherche l'ami invité
+            const invitedFriend = await User.findByPk(invitedFriendId);
+            if (!invitedFriend) {
+                res.status(404).json(`Cet ami invité n'existe pas`);
+            }
+
+            // On vérifie que l'ami invité a bien reçu une invitation pour cet événement
+            const isInvited = await invitedFriend.hasInvitationReceived(event);
+            if (!isInvited) {
+                res.status(404).json(`Cet ami invité n'a pas reçu d'invitation pour cet événement`);
+            }
+
+            // On supprime l'invitation reçue
+            await invitedFriend.removeInvitationReceived(event);
+            res.status(200).json(`Invitation annulée`);
+
+        } catch (error) {
+            console.trace(error);
+            res.status(500).json(error.toString());
+        }
+    },
+
+
+    // TODO : Méthode permettant à un utilisateur d'annuler une invitation envoyé
     // TODO : Statistiques sur les événements ??
 
 }
