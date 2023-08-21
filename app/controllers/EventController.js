@@ -398,10 +398,7 @@ const eventController = {
         }
     },
 
-
-    // TODO : Méthode permettant à un utilisateur d'annuler une invitation envoyé
     // TODO : Statistiques sur les événements ??
-
 }
 
 export default eventController;
