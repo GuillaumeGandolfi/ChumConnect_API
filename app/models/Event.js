@@ -17,7 +17,7 @@ Event.init({
         allowNull: false
     },
     hour: {
-        type: DataTypes.DATE,
+        type: DataTypes.TIME,
         allowNull: false
     },
     location: {
