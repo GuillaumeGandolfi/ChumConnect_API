@@ -41,6 +41,10 @@ const eventController = {
     // Création d'un événement
     createEvent: async (req, res) => {
         try {
+            // On récupère l'id de la personne qui créée l'event (organisateur)
+            // TODO : Pour l'instant j'utilise req.body mais plus tard un token sera mis en place
+            // TODO : avec ce token de connexion on récupérera l'id de l'user
+            const userId = req.body.userId;
             const { title, description, date, hour, location } = req.body;
             const bodyErrors = [];
 
@@ -56,7 +60,8 @@ const eventController = {
                     description,
                     date,
                     hour,
-                    location
+                    location,
+                    organizer_id: userId // On affecte l'id de l'organisateur à l'event
                 });
                 await newEvent.save();
                 res.status(201).json({ newEvent });
