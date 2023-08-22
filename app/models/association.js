@@ -49,7 +49,7 @@ Event.belongsToMany(User, {
     foreignKey: "event_id",
     otherKey: "participant_id",
     as: "participants",
-    through: "uevent_has_participant"
+    through: "event_has_participant"
 });
 
 // Association : Event <-> Category
@@ -64,16 +64,17 @@ Category.hasMany(Event, {
 });
 
 // Association : User <-> Event (Invitation Sent By Organizer)
-User.belongsToMany(Event, {
-    foreignKey: "organizer_id",
-    otherKey: "invited_user_id",
+Event.belongsToMany(User, {
+    foreignKey: "event_id",
+    otherKey: "organizer_id",
     as: "invitationSent",
     through: "event_invitation_sent"
 });
 
+
 // Association : User <-> Event (Invitation Received)
 User.belongsToMany(Event, {
-    foreignKey: "invited_user_id",
+    foreignKey: "invited_friend_id",
     otherKey: "organizer_id",
     as: "invitationReceived",
     through: "event_invitation_received"

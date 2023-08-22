@@ -1,3 +1,4 @@
+import sequelize from '../config/database.js';
 import association from '../models/association.js';
 // Destructuring
 const { Event, Category, User } = association;
@@ -139,8 +140,14 @@ const eventController = {
                 res.status(404).json(`Evénement ou Utilisateur introuvable`);
             }
 
-            await event.addParticipant(participant);
-            res.status(200).json(`Participant ajouté à l'événement`);
+            // Vérification que l'utilisateur n'est pas déjà participant à l'événement
+            const isParticipant = await event.hasParticipant(participant);
+            if (isParticipant) {
+                res.status(400).json(`Cet utilisateur est déjà participant à l'événement`);
+            } else {
+                await event.addParticipant(participant);
+                res.status(200).json(`Participant ajouté à l'événement`);
+            }
         } catch (error) {
             console.trace(error);
             res.status(500).json(error.toString());
@@ -241,7 +248,7 @@ const eventController = {
     sendEventInvitation: async (req, res) => {
         const eventId = req.params.id;
         const organizerId = req.body.organizerId;
-        const invitedFriendIds = req.body.invitedFriendIds // Tableau d'id des amis invités
+        const invitedFriendId = req.body.invitedFriendId // Tableau d'id des amis invités
 
         try {
             // On vérifie que l'user est organisateur de l'event
@@ -256,17 +263,17 @@ const eventController = {
             }
 
             // On vérifie que les utilisateurs invités existent
-            const invitedUsers = await User.findAll({
+            const invitedUser = await User.findOne({
                 where: {
-                    id: invitedFriendIds
+                    id: invitedFriendId
                 }
             });
 
-            if (invitedUsers.length !== invitedFriendIds.length) {
-                res.status(404).json(`Un ou plusieurs amis invités n'existent pas`);
+            if (!invitedUser) {
+                res.status(404).json(`L'ami invité n'existe pas`);
             } else {
                 // On vérifie que les utilisateurs invités sont bien des amis de l'organisateur
-                const areFriends = await User.findAll({
+                const areFriends = await User.findOne({
                     where: {
                         id: organizerId
                     },
@@ -274,18 +281,26 @@ const eventController = {
                         {
                             association: "friends",
                             where: {
-                                id: invitedFriendIds
+                                id: invitedFriendId
                             }
                         }
                     ]
                 });
 
-                if (areFriends.length !== invitedFriendIds.length) {
-                    res.status(404).json(`Un ou plusieurs amis invités ne sont pas vos amis`);
+                if (!areFriends) {
+                    res.status(400).json(`Vous ne pouvez inviter que vos amis`);
                 } else {
                     // On envoie l'invitation aux amis
-                    await event.addInvitationSent(invitedUsers);
-                    res.status(200).json(`Invitations envoyées`);
+                    const query = `
+                    INSERT INTO event_invitation_sent (event_id, organizer_id, invited_friend_id)
+                    VALUES ($1, $2, $3)`;
+
+                    await sequelize.query(query, {
+                        bind: [eventId, organizerId, invitedFriendId],
+                        type: sequelize.QueryTypes.INSERT
+                    });
+
+                    res.status(200).json(`Invitation envoyée`);
                 }
             }
         } catch (error) {
