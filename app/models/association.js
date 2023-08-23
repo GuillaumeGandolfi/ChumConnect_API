@@ -68,7 +68,7 @@ Event.belongsToMany(User, {
     foreignKey: "event_id",
     otherKey: "organizer_id",
     as: "invitationSent",
-    through: "event_invitation_sent"
+    through: "event_invitation"
 });
 
 
@@ -77,7 +77,7 @@ User.belongsToMany(Event, {
     foreignKey: "invited_friend_id",
     otherKey: "organizer_id",
     as: "invitationReceived",
-    through: "event_invitation_received"
+    through: "event_invitation"
 });
 
 export default { User, Event, Category };

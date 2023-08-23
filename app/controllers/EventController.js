@@ -290,17 +290,56 @@ const eventController = {
                 if (!areFriends) {
                     res.status(400).json(`Vous ne pouvez inviter que vos amis`);
                 } else {
-                    // On envoie l'invitation aux amis
-                    const query = `
-                    INSERT INTO event_invitation_sent (event_id, organizer_id, invited_friend_id)
-                    VALUES ($1, $2, $3)`;
 
-                    await sequelize.query(query, {
-                        bind: [eventId, organizerId, invitedFriendId],
-                        type: sequelize.QueryTypes.INSERT
+                    // Vérification si l'ami invité est déjà participant à l'événement
+                    const isParticipantQuery = `
+                    SELECT COUNT(*) AS count
+                    FROM event_has_participant
+                    WHERE event_id = $1 AND participant_id = $2`;
+
+                    const isParticipantResult = await sequelize.query(isParticipantQuery, {
+                        bind: [eventId, invitedFriendId],
+                        type: sequelize.QueryTypes.SELECT
                     });
 
-                    res.status(200).json(`Invitation envoyée`);
+                    const isParticipant = isParticipantResult[0].count > 0;
+
+                    if (isParticipant) {
+                        return res.status(400).json(`L'ami invité est déjà participant à cet événement`);
+                    }
+
+                    // Vérification si l'invitation n'a pas déjà été envoyée
+                    const isInvitationSentQuery = `
+                    SELECT COUNT(*) AS count
+                    FROM event_invitation
+                    WHERE event_id = $1 AND organizer_id = $2 AND invited_friend_id = $3`;
+
+                    const isInvitationSentResult = await sequelize.query(isInvitationSentQuery, {
+                        bind: [eventId, organizerId, invitedFriendId],
+                        type: sequelize.QueryTypes.SELECT
+                    });
+
+                    const isInvitationSent = isInvitationSentResult[0].count > 0;
+
+                    if (isInvitationSent) {
+                        res.status(400).json(`L'invitation a déjà été envoyée`);
+                    } else {
+                        // On envoie l'invitation aux amis
+                        const query = `
+                        INSERT INTO event_invitation (event_id, organizer_id, invited_friend_id)
+                        VALUES ($1, $2, $3)`;
+
+                        const resultQuery = await sequelize.query(query, {
+                            bind: [eventId, organizerId, invitedFriendId],
+                            type: sequelize.QueryTypes.INSERT
+                        });
+
+                        if (resultQuery) {
+                            res.status(200).json(`Invitation envoyée`);
+                        } else {
+                            res.status(500).json(`Erreur lors de l'envoi de l'invitation`);
+                        }
+                    }
                 }
             }
         } catch (error) {
@@ -328,16 +367,61 @@ const eventController = {
             }
 
             // On vérifie que l'ami invité a bien reçu une invitation pour cet événement
-            const isInvited = await invitedFriend.hasInvitationReceived(event);
+            const isInvitedQuery = `
+            SELECT COUNT(*) AS count
+            FROM event_invitation
+            WHERE event_id = $1 AND invited_friend_id = $2`;
+
+            const isInvitedResult = await sequelize.query(isInvitedQuery, {
+                bind: [eventId, invitedFriendId],
+                type: sequelize.QueryTypes.SELECT
+            });
+
+            const isInvited = isInvitedResult[0].count > 0;
+
             if (!isInvited) {
                 res.status(404).json(`Vous n'avez pas reçu d'invitation pour cet événement`);
+                return;
             }
 
-            // On ajoute l'ami invité à la liste des participants
-            await event.addParticipant(invitedFriend);
+            // Vérification si l'ami invité est déjà participant à l'événement
+            const isParticipantQuery = `
+            SELECT COUNT(*) AS count
+            FROM event_has_participant
+            WHERE event_id = $1 AND participant_id = $2`;
 
-            // On supprime l'invitation reçue
-            await invitedFriend.removeInvitationReceived(event);
+            const isParticipantResult = await sequelize.query(isParticipantQuery, {
+                bind: [eventId, invitedFriendId],
+                type: sequelize.QueryTypes.SELECT
+            });
+
+            const isParticipant = isParticipantResult[0].count > 0;
+
+            if (isParticipant) {
+                res.status(400).json(`L'ami invité est déjà participant à cet événement`);
+                return;
+            }
+
+            // On insère l'ami invité dans la table event_participant (invitation acceptée)
+            const insertParticipantQuery = `
+            INSERT INTO event_has_participant (event_id, participant_id)
+            VALUES ($1, $2)`;
+
+            await sequelize.query(insertParticipantQuery, {
+                bind: [eventId, invitedFriendId],
+                type: sequelize.QueryTypes.INSERT
+            });
+
+            // On supprime l'invitation de la table event_invitation_received
+            const deleteInvitationQuery = `
+            DELETE FROM event_invitation
+            WHERE event_id = $1 AND invited_friend_id = $2`;
+
+            await sequelize.query(deleteInvitationQuery, {
+                bind: [eventId, invitedFriendId],
+                type: sequelize.QueryTypes.DELETE
+            });
+
             res.status(200).json(`Invitation acceptée`);
         } catch (error) {
             console.trace(error);
