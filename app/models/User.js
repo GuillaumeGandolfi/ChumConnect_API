@@ -25,15 +25,17 @@ User.init({
         type: DataTypes.TEXT,
         allowNull: false
     },
-    localization: {
+    city: {
         type: DataTypes.TEXT,
         allowNull: false
     },
     level: {
         type: DataTypes.INTEGER,
+        defaultValue: 0,
     },
     experience: {
         type: DataTypes.INTEGER,
+        defaultValue: 0,
     },
     isAdmin: {
         type: DataTypes.BOOLEAN,

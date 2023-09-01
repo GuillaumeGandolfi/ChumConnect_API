@@ -10,13 +10,13 @@ Event.init({
     },
     description: {
         type: DataTypes.TEXT,
-        allowNUll: false
+        allowNull: false
     },
     date: {
         type: DataTypes.DATE,
         allowNull: false
     },
-    hour: {
+    start_time: {
         type: DataTypes.TIME,
         allowNull: false
     },
@@ -24,6 +24,22 @@ Event.init({
         type: DataTypes.TEXT,
         allowNull: false
     },
+    category_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'category', // Nom de la table (à vérifier)
+            key: 'id'
+        }
+    },
+    organizer_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'user', // Nom de la table
+            key: 'id'
+        }
+    }
 },
     {
         sequelize,
