@@ -59,11 +59,11 @@ const userController = {
     createUser: async (req, res) => {
         try {
             // On récupère les données envoyées dans le corps de la requête
-            const { email, firstname, lastname, age, localization, password } = req.body;
+            const { email, firstname, lastname, age, city, password } = req.body;
             const bodyErrors = [];
 
             // On vérifie que toutes les données nécessaires sont bien présentes
-            if (!email || !firstname || !lastname || !age || !localization || !password) {
+            if (!email || !firstname || !lastname || !age || !city || !password) {
                 bodyErrors.push(`Certains champs ne sont pas renseignés`);
             }
 
@@ -79,8 +79,6 @@ const userController = {
                 bodyErrors.push(`Un utilisateur avec cet email existe déjà`);
             }
 
-            // TODO : Imposer une schéma sur le mot de passe
-
             // On vérifie si on a des erreurs, si oui on les affiche
             if (bodyErrors.length) {
                 res.status(400).json(bodyErrors);
@@ -93,7 +91,7 @@ const userController = {
                     firstname,
                     lastname,
                     age,
-                    localization,
+                    city,
                     password: encodedPassword
                 });
                 // Sauvegarde de l'utilisateur dans la database
@@ -117,12 +115,12 @@ const userController = {
                 res.status(404).json(`Cet utilisateur n'existe pas`);
             } else {
                 // On récupère les nouvelles données dans le body 
-                const { email, firstname, lastname, age, localization, password } = req.body;
+                const { email, firstname, lastname, age, city, password } = req.body;
 
                 // On vérifie que le schéma de l'email et du mot de passe est respecté
                 const { error } = schema.validate({ email, password });
                 if (error) {
-                    res.status(400).json(`L'email ou le mot de passe ne respecte pas le schéma`);
+                    return res.status(400).json(`L'email ou le mot de passe ne respecte pas le schéma`);
                 }
 
                 // On ne change que les données renseignées
@@ -138,8 +136,8 @@ const userController = {
                 if (age) {
                     user.age = age;
                 }
-                if (localization) {
-                    user.localization = localization;
+                if (city) {
+                    user.city = city;
                 }
                 if (password) {
                     // TODO : Ne pas oublier le schéma du mot de passe
