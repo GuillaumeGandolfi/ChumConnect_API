@@ -3,6 +3,7 @@ import express from 'express';
 // Import des controllers
 import userController from '../controllers/UserController.js';
 import eventController from '../controllers/EventController.js';
+import categoryController from '../controllers/CategoryController.js';
 
 // Création du routeur
 const router = express.Router();
@@ -38,5 +39,12 @@ router.post('/event/:id/send-event-invitation', eventController.sendEventInvitat
 router.post('/event/:id/accept-event-invitation', eventController.acceptEventInvitation);
 router.post('/event/:id/reject-event-invitation', eventController.rejectEventInvitation);
 router.post('/event/:id/cancel-event-invitation', eventController.cancelEventInvitation);
+
+/** Categories */
+router.get('/categories', categoryController.getAllCategories);
+router.get('/category/:id', categoryController.getOneCategory);
+router.post('/category', categoryController.createCategory);
+router.put('/category/:id', categoryController.updateCategory);
+router.delete('/category/id', categoryController.deleteCategory);
 
 export default router;
