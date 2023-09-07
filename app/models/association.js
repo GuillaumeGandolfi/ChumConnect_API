@@ -30,13 +30,6 @@ Event.belongsTo(User, {
 });
 
 // Association : User <-> Event (Participant)
-User.belongsToMany(Event, {
-    foreignKey: "user_id",
-    otherKey: "event_id",
-    as: "participatedEvents",
-    through: "user_has_event"
-});
-
 Event.belongsToMany(User, {
     foreignKey: "event_id",
     otherKey: "participant_id",

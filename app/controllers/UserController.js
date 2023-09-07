@@ -39,8 +39,6 @@ const userController = {
                 // On précise les associations que l'on veut inclure dans la réponse
                 include: [
                     { association: "friends" },
-                    { association: "createdEvents" },
-                    { association: "participatedEvents" }
                 ]
             });
             // Si l'utilisateur n'existe pas on renvoie une erreur 404
@@ -117,10 +115,12 @@ const userController = {
                 // On récupère les nouvelles données dans le body 
                 const { email, firstname, lastname, age, city, password } = req.body;
 
-                // On vérifie que le schéma de l'email et du mot de passe est respecté
-                const { error } = schema.validate({ email, password });
-                if (error) {
-                    return res.status(400).json(`L'email ou le mot de passe ne respecte pas le schéma`);
+                // Si l'email et le mot de passe sont fournis, on les valide
+                if (email || password) {
+                    const { error } = schema.validate({ email, password });
+                    if (error) {
+                        return res.status(400).json(`L'email ou le mot de passe ne respecte pas le schéma`);
+                    }
                 }
 
                 // On ne change que les données renseignées
@@ -183,9 +183,6 @@ const userController = {
             const user = await User.findByPk(userId);
             const friend = await User.findByPk(friendId);
 
-            console.log('User:', user);
-            console.log('Friend:', friend);
-
             if (!user || !friend) {
                 res.status(404).json(`Utilisateur ou ami introuvable`);
             }
@@ -193,24 +190,24 @@ const userController = {
             // On vérifie que l'utilisateur n'est pas déjà ami avec la personne
             const isFriend = await user.hasFriend(friend);
             if (isFriend) {
-                res.status(400).json(`Vous êtes déjà ami avec cette personne`);
+                return res.status(400).json(`Vous êtes déjà ami avec cette personne`);
             }
 
             // On vérifie que l'utilisateur n'a pas déjà envoyé une demande d'ami à cette personne
-            const isFriendRequestSent = await user.hasFriendRequestSent(friend);
-            if (isFriendRequestSent) {
-                res.status(400).json(`Vous avez déjà envoyé une demande d'ami à cette personne`);
+            const sentRequest = await user.hasFriendRequestSent(friend);
+            if (sentRequest) {
+                return res.status(400).json(`Vous avez déjà envoyé une demande d'ami à cette personne`);
             }
 
             // On vérifie que l'utilisateur n'a pas déjà reçu une demande d'ami de cette personne
-            const isFriendRequestReceived = await user.hasFriendRequestReceived(friend);
-            if (isFriendRequestReceived) {
-                res.status(400).json(`Vous avez déjà reçu une demande d'ami de cette personne`);
+            const receivedRequest = await friend.hasFriendRequestSent(user);
+
+            if (receivedRequest) {
+                return res.status(400).json(`Vous avez déjà reçu une demande d'ami de cette personne`);
             }
 
             // On envoie la demande d'ami
             await user.addFriendRequestSent(friend);
-            await friend.addFriendRequestReceived(user);
 
             res.status(200).json(`La demande d'ami a bien été envoyée`);
         } catch (error) {
@@ -233,9 +230,9 @@ const userController = {
             }
 
             // On vérifie que l'utilisateur a bien reçu une demande d'ami de la personne
-            const isFriendRequestReceived = await user.hasFriendRequestReceived(friend);
+            const isFriendRequestReceived = await friend.hasFriendRequestSent(user);
             if (!isFriendRequestReceived) {
-                res.status(400).json(`Aucune demande d'ami reçue de cet ami`);
+                return res.status(400).json(`Aucune demande d'ami reçue de cet ami`);
             }
 
             // Accepter la demande d'ami
@@ -243,7 +240,6 @@ const userController = {
             await friend.addFriend(user);
 
             // Supprimer la demande d'ami en attente
-            await user.removeFriendRequestReceived(friend);
             await friend.removeFriendRequestSent(user);
 
             res.status(200).json(`La demande d'ami a été acceptée`);
@@ -263,17 +259,16 @@ const userController = {
             const friend = await User.findByPk(friendId);
 
             if (!user || !friend) {
-                res.status(404).json(`Utilisateur ou ami introuvable`);
+                return res.status(404).json(`Utilisateur ou ami introuvable`);
             }
 
             // On vérifie que l'utilisateur a bien reçu une demande d'ami de la personne
-            const isFriendRequestReceived = await user.hasFriendRequestReceived(friend);
+            const isFriendRequestReceived = await friend.hasFriendRequestSent(user);
             if (!isFriendRequestReceived) {
-                res.status(400).json(`Aucune demande d'ami reçue de cet ami`);
+                return res.status(400).json(`Aucune demande d'ami reçue de cet ami`);
             }
 
             // On supprime la demande d'ami en attente
-            await user.removeFriendRequestReceived(friend);
             await friend.removeFriendRequestSent(user);
 
             res.status(200).json(`La demande d'ami a été refusée`);
@@ -293,7 +288,7 @@ const userController = {
             const friend = await User.findByPk(friendId);
 
             if (!user || !friend) {
-                res.status(404).json(`Utilisateur ou ami introuvable`);
+                return res.status(404).json(`Utilisateur ou ami introuvable`);
             }
 
             // On vérifie que l'utilisateur est bien ami avec la personne
