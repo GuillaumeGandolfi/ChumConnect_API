@@ -183,8 +183,11 @@ const userController = {
             const user = await User.findByPk(userId);
             const friend = await User.findByPk(friendId);
 
+            console.log(user);
+            console.log(friend);
+
             if (!user || !friend) {
-                res.status(404).json(`Utilisateur ou ami introuvable`);
+                return res.status(404).json(`Utilisateur ou ami introuvable`);
             }
 
             // On vérifie que l'utilisateur n'est pas déjà ami avec la personne
@@ -200,7 +203,7 @@ const userController = {
             }
 
             // On vérifie que l'utilisateur n'a pas déjà reçu une demande d'ami de cette personne
-            const receivedRequest = await friend.hasFriendRequestSent(user);
+            const receivedRequest = await user.hasFriendRequestReceived(friend);
 
             if (receivedRequest) {
                 return res.status(400).json(`Vous avez déjà reçu une demande d'ami de cette personne`);

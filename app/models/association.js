@@ -18,6 +18,13 @@ User.belongsToMany(User, {
     through: "friend_request"
 });
 
+User.belongsToMany(User, {
+    foreignKey: "receiver_id",
+    otherKey: "sender_id",
+    as: "friendRequestReceived",
+    through: "friend_request"
+});
+
 // Association : User <-> Event (Organizer)
 User.hasMany(Event, {
     foreignKey: "organizer_id",
