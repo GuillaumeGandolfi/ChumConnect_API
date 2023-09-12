@@ -46,10 +46,11 @@ const eventController = {
             // TODO : Pour l'instant j'utilise req.body mais plus tard un token sera mis en place
             // TODO : avec ce token de connexion on récupérera l'id de l'user
             const userId = req.body.userId;
-            const { title, description, date, hour, location } = req.body;
+            const categoryId = req.body.categoryId;
+            const { title, description, date, start_time, location } = req.body;
             const bodyErrors = [];
 
-            if (!title || !description || !date || !hour || !location) {
+            if (!title || !description || !date || !start_time || !location) {
                 bodyErrors.push(`Certains champs ne sont pas renseignés`);
             }
 
@@ -60,9 +61,10 @@ const eventController = {
                     title,
                     description,
                     date,
-                    hour,
+                    start_time,
                     location,
-                    organizer_id: userId // On affecte l'id de l'organisateur à l'event
+                    organizer_id: userId, // On affecte l'id de l'organisateur à l'event
+                    category_id: categoryId // On affecte l'id de la catégorie à l'event
                 });
                 await newEvent.save();
                 res.status(201).json({ newEvent });
