@@ -68,7 +68,39 @@ const AuthController = {
         }
     },
 
+    loginUser: async (req, res) => {
+        const { email, password } = req.body;
 
+        try {
+            // Test des saisies
+            if (!email || !password) {
+                return res.status(400).json({ error: 'Tous les champs doivent être complétés' });
+            }
+
+            // On vérifie que l'email est associé à un compte
+            const user = await User.findOne({
+                where: { email: email },
+                include: [
+                    { association: 'friends' },
+                ]
+            });
+
+            // Si l'utilisateur n'existe pas ou que le mot de passe est incorrect,
+            // on renvoie un message d'erreur générique
+            if (!user || !bcrypt.compareSync(password, user.password)) {
+                return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+            }
+
+            // On supprime le mot de passe de l'objet utilisateur avant de l'envoyer
+            delete user.password;
+
+            // On renvoie les infos de l'utilisateur
+            res.status(200).json({ user: user });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Une erreur est survenue' });
+        }
+    }
 }
 
 export default AuthController;
