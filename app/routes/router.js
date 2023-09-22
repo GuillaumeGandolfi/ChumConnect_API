@@ -4,6 +4,7 @@ import express from 'express';
 import userController from '../controllers/UserController.js';
 import eventController from '../controllers/EventController.js';
 import categoryController from '../controllers/CategoryController.js';
+import AuthController from '../controllers/AuthController.js';
 
 // Création du routeur
 const router = express.Router();
@@ -14,6 +15,9 @@ router.get('/user/:id', userController.getOneUser);
 router.post('/user', userController.createUser);
 router.put('/user/:id', userController.updateUser);
 router.delete('/user/:id', userController.deleteUser);
+
+/** Authentification */
+router.post('/signup', AuthController.signupUser);
 
 /** Friends */
 router.post('/user/:id/send-friend-request', userController.sendFriendRequest);
