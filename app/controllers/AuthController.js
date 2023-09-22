@@ -4,14 +4,13 @@ const User = association.User;
 import bcrypt from 'bcrypt';
 import Joi from 'joi';
 
-const schema = Joi.object({
-    email: Joi.string().pattern(new RegExp('^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')).required(),
-    password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')).required()
-});
+const emailSchema = Joi.string().pattern(new RegExp('^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')).required();
+const passwordSchema = Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')).required();
 
 const AuthController = {
     signupUser: async (req, res) => {
         try {
+            console.log(">>>>>>>>>>>>>>>", req.body);
             const { email, firstname, lastname, password, confirmation } = req.body;
             const bodyErrors = [];
 
@@ -21,10 +20,9 @@ const AuthController = {
             }
 
             // On vérifie que le mail est valide (selon le schéma)
-            const emailValid = schema.validate({ email: email });
+            const emailValid = emailSchema.validate(email);
             if (emailValid.error) {
                 bodyErrors.push('Le mail n\'est pas valide');
-                console.log(emailValid.error.details[0].message);
             }
 
             // On vérifie que le mail n'est pas déjà utilisé
@@ -34,10 +32,9 @@ const AuthController = {
             }
 
             // On vérifie le mot de passe (schéma)
-            const passwordValid = schema.validate({ password: password });
+            const passwordValid = passwordSchema.validate(password);
             if (passwordValid.error) {
                 bodyErrors.push('mot de passe invalide');
-                console.log(passwordValid.error.details[0].message);
             }
 
             // On vérifie que les deux mots de passe sont identiques
@@ -51,7 +48,7 @@ const AuthController = {
             } else {
                 // On crypte le mot de passe
                 const encodedPassword = bcrypt.hashSync(password, 10);
-                let newUser = await User.build({
+                let newUser = User.build({
                     email,
                     firstname,
                     lastname,

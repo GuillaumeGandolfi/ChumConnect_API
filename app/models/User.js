@@ -19,7 +19,7 @@ User.init({
     },
     age: {
         type: DataTypes.INTEGER,
-        allowNull: false
+        defaultValue: 0,
     },
     password: {
         type: DataTypes.TEXT,
@@ -27,7 +27,7 @@ User.init({
     },
     city: {
         type: DataTypes.TEXT,
-        allowNull: false
+        defaultValue: "Inconnu",
     },
     level: {
         type: DataTypes.INTEGER,
