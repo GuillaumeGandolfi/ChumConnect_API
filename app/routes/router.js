@@ -6,6 +6,9 @@ import eventController from '../controllers/EventController.js';
 import categoryController from '../controllers/CategoryController.js';
 import AuthController from '../controllers/AuthController.js';
 
+// Import des middlewares
+import tokenMiddleware from '../middlewares/tokenMiddleware.js';
+
 // Création du routeur
 const router = express.Router();
 
@@ -19,6 +22,8 @@ router.delete('/user/:id', userController.deleteUser);
 /** Authentification */
 router.post('/signup', AuthController.signupUser);
 router.post('/login', AuthController.loginUser);
+router.post('/refresh-token', AuthController.refreshToken);
+router.post('/delete-token', AuthController.deleteToken);
 
 /** Friends */
 router.post('/user/:id/send-friend-request', userController.sendFriendRequest);
