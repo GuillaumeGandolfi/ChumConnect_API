@@ -18,7 +18,11 @@ import swaggerDocument from "./documentation/swagger.json" assert { type: "json"
 const app = express();
 
 // On autorise tout les domaines à faire du Cross Origin Resource Sharing.
-app.use(cors('*'));
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true, // Autorise l'envoi de cookies lors de requêtes cross-origin
+}));
+
 app.use(bodyParser.none()); // Pour les requêtes multipart/form-data
 app.use(express.json()); // Pour les requêtes application/json
 

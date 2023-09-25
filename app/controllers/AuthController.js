@@ -88,18 +88,31 @@ const AuthController = {
                 return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
             }
 
-            // On supprime le mot de passe de l'objet utilisateur avant de l'envoyer
-            delete user.password;
-
             // Signature du token
             const secretKey = process.env.JWT_SECRET_KEY;
             const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY;
 
+            // Création des tokens
             const token = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '30m' });
             const refreshToken = jwt.sign({ userId: user.id }, refreshSecretKey, { expiresIn: '30d' });
 
+            // Envoi des tokens dans des cookies HttpOnly
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: false, // mettre true quand sera en production
+                sameSite: 'Strict',
+            });
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'Strict'
+            });
+
+            // On supprime le mot de passe de l'objet utilisateur avant de l'envoyer
+            delete user.password;
+
             // On renvoie les infos de l'utilisateur
-            res.status(200).json({ user: user, token: token, refreshToken: refreshToken });
+            res.status(200).json({ user: user });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Une erreur est survenue' });
