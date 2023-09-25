@@ -123,7 +123,7 @@ const AuthController = {
 
     refreshToken: async (req, res) => {
         // Récupération du refreshToken depuis le corps de la requête
-        const refreshToken = req.body.refreshToken;
+        const refreshToken = req.cookies.refreshToken;
         const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY;
 
         // Vérification de la présence du refreshToken

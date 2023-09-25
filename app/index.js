@@ -5,6 +5,7 @@ import express from "express";
 import router from "./routes/router.js";
 
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import multer from "multer";
 const bodyParser = multer();
 
@@ -23,6 +24,7 @@ app.use(cors({
     credentials: true, // Autorise l'envoi de cookies lors de requêtes cross-origin
 }));
 
+app.use(cookieParser()); // Pour les cookies
 app.use(bodyParser.none()); // Pour les requêtes multipart/form-data
 app.use(express.json()); // Pour les requêtes application/json
 
