@@ -3,6 +3,7 @@ const User = association.User;
 
 import bcrypt from 'bcrypt';
 import Joi from 'joi';
+import jwt from 'jsonwebtoken';
 
 const emailSchema = Joi.string().pattern(new RegExp('^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')).required();
 const passwordSchema = Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')).required();

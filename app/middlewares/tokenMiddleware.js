@@ -1,7 +1,7 @@
 import association from '../models/association.js';
 const User = association.User;
 
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -32,4 +32,4 @@ const tokenMiddleware = async (req, res, next) => {
     }
 }
 
-module.exports = tokenMiddleware;
+export default tokenMiddleware;
