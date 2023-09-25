@@ -93,15 +93,68 @@ const AuthController = {
 
             // Signature du token
             const secretKey = process.env.JWT_SECRET_KEY;
-            const token = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '1h' });
+            const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY;
+
+            const token = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '30m' });
+            const refreshToken = jwt.sign({ userId: user.id }, refreshSecretKey, { expiresIn: '30d' });
 
             // On renvoie les infos de l'utilisateur
-            res.status(200).json({ user: user, token: token });
+            res.status(200).json({ user: user, token: token, refreshToken: refreshToken });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Une erreur est survenue' });
         }
-    }
+    },
+
+
+    refreshToken: async (req, res) => {
+        // Récupération du refreshToken depuis le corps de la requête
+        const refreshToken = req.body.refreshToken;
+        const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY;
+
+        // Vérification de la présence du refreshToken
+        if (!refreshToken) {
+            return res.status(400).json('Refresh token is required');
+        }
+
+        try {
+            // Décodage du refreshToken
+            const decodedRefreshToken = jwt.verify(refreshToken, refreshSecretKey);
+
+            // Vérification de la validité du token et de la correspondance avec un utilisateur
+            const user = await User.findByPk(decodedRefreshToken.userId);
+            if (!user) {
+                return res.status(401).json('Invalid refresh token');
+            }
+
+            // TODO : Lié refreshtoken et user dans la bdd, pour vérifier qu'il est toujours valide
+
+            // Génération d'un nouveau token d'accès
+            const secretKey = process.env.JWT_SECRET_KEY;
+            const newAccessToken = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '30m' });
+
+            // Envoi du nouveau token d'accès au client
+            res.status(200).json({ token: newAccessToken });
+        } catch (error) {
+            console.error(error);
+            // En cas d'erreur de vérification, il est préférable de renvoyer une réponse générique
+            // pour éviter de donner des informations sensibles
+            res.status(401).json('Unauthorized');
+        }
+    },
+
+    deleteToken: async (req, res) => {
+        try {
+            // TODO : Invalider le token (quand j'aurai mis dans la bdd les refreshtoken)
+
+            // Envoyer une réponse indiquant que la déconnexion a été effectuée avec succès
+            res.status(200).json({ message: 'Successfully logged out' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'An error occurred during logout' });
+        }
+    },
+
 }
 
 export default AuthController;
