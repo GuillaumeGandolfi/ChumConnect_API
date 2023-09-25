@@ -18,6 +18,7 @@ router.delete('/user/:id', userController.deleteUser);
 
 /** Authentification */
 router.post('/signup', AuthController.signupUser);
+router.post('/login', AuthController.loginUser);
 
 /** Friends */
 router.post('/user/:id/send-friend-request', userController.sendFriendRequest);
