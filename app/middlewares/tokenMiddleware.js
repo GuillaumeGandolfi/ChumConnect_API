@@ -8,13 +8,11 @@ dotenv.config();
 const secretKey = process.env.JWT_SECRET_KEY || 'default-secret-key';
 
 const tokenMiddleware = async (req, res, next) => {
-    const authHeader = req.headers.authorization;
+    const token = req.cookies.token; // Récupérer le token du cookie
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(400).json('Authorization header missing or invalid');
+    if (!token) {
+        return res.status(401).json('Token missing or invalid');
     }
-
-    const token = authHeader.split(' ')[1];
 
     try {
         const decodedToken = jwt.verify(token, secretKey);
