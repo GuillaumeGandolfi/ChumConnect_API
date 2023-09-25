@@ -91,8 +91,12 @@ const AuthController = {
             // On supprime le mot de passe de l'objet utilisateur avant de l'envoyer
             delete user.password;
 
+            // Signature du token
+            const secretKey = process.env.JWT_SECRET_KEY;
+            const token = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '1h' });
+
             // On renvoie les infos de l'utilisateur
-            res.status(200).json({ user: user });
+            res.status(200).json({ user: user, token: token });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Une erreur est survenue' });

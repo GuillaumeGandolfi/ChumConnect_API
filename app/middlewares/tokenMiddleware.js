@@ -2,6 +2,8 @@ import association from '../models/association.js';
 const User = association.User;
 
 const jwt = require('jsonwebtoken');
+import dotenv from 'dotenv';
+dotenv.config();
 
 const secretKey = process.env.JWT_SECRET_KEY || 'default-secret-key';
 
