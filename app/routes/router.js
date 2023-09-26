@@ -22,6 +22,7 @@ router.delete('/user/:id', userController.deleteUser);
 /** Authentification */
 router.post('/signup', AuthController.signupUser);
 router.post('/login', AuthController.loginUser);
+router.post('/logout', AuthController.logoutUser);
 router.post('/refresh-token', AuthController.refreshToken);
 router.post('/delete-token', AuthController.deleteToken);
 

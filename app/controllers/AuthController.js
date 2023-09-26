@@ -120,6 +120,15 @@ const AuthController = {
         }
     },
 
+    logoutUser: async (req, res) => {
+        // Suppression des cookies
+        res.clearCookie('token');
+        res.clearCookie('refreshToken');
+
+        // Envoi d'une réponse indiquant que la déconnexion a été effectuée avec succès
+        res.status(200).json({ message: 'Déconnecté avec succès' });
+    },
+
 
     refreshToken: async (req, res) => {
         // Récupération du refreshToken depuis le corps de la requête
