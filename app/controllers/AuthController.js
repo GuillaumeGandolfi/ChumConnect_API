@@ -178,6 +178,29 @@ const AuthController = {
         }
     },
 
-}
+    checkAuthStatus: async (req, res) => {
+        try {
+            // On vérifie la présence du refreshToken dans les cookies
+            const refreshToken = req.cookies.refreshToken;
+
+            // S'il n'est pas défini, on renvoie un état non authentifié 
+            if (!refreshToken) {
+                return res.status(200).json({ isAuthenticated: false });
+            }
+
+            // Utilisez le secret key pour vérifier la validité du refreshToken
+            const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY;
+            jwt.verify(refreshToken, refreshSecretKey);
+
+            // Si tout est en ordre, on renvoie un état authentifié
+            res.status(200).json({ isAuthenticated: true });
+        } catch (error) {
+            console.error(error);
+            // Si une erreur se produit, état non authentifié
+            res.status(200).json({ isAuthenticated: false });
+        }
+    },
+
+};
 
 export default AuthController;
