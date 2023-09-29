@@ -139,14 +139,31 @@ const AuthController = {
                 ]
             });
 
-            // On supprime le mot de passe de l'objet utilisateur avant de l'envoyer
-            delete user.password;
+            if (!user) {
+                return res.status(404).json({ error: 'Utilisateur non trouvé' });
+            }
+
+            // Crée un nouvel objet avec seulement les informations nécessaires
+            const userInfo = {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastname: user.lastname,
+                age: user.age,
+                location: user.location,
+                friends: user.friends,
+            };
 
             // On renvoie les infos de l'utilisateur
-            res.status(200).json({ user: user });
+            res.status(200).json({ user: userInfo });
 
         } catch (error) {
             console.error(error);
+
+            if (error instanceof jwt.TokenExpiredError) {
+                return res.status(401).json({ error: 'Token expiré' });
+            }
+
             res.status(500).json({ error: 'Une erreur est survenue' });
         }
     },
