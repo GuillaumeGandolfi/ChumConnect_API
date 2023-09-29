@@ -187,8 +187,15 @@ const AuthController = {
             const secretKey = process.env.JWT_SECRET_KEY;
             const newAccessToken = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '30m' });
 
-            // Envoi du nouveau token d'accès au client
-            res.status(200).json({ token: newAccessToken });
+            // Envoi du nouveau token d'accès dans un cookie HttpOnly
+            res.cookie('token', newAccessToken, {
+                httpOnly: true,
+                secure: false, // mettre true quand sera en production
+                sameSite: 'Strict',
+            });
+
+            // Envoi d'une réponse de succès
+            res.status(200).json({ success: 'New access token generated' });
         } catch (error) {
             console.error(error);
             // En cas d'erreur de vérification, il est préférable de renvoyer une réponse générique
