@@ -120,6 +120,37 @@ const AuthController = {
         }
     },
 
+    currentUser: async (req, res) => {
+        const token = req.cookies.token;
+
+        if (!token) {
+            return res.status(401).json({ error: 'Non authentifié' });
+        }
+
+        try {
+            // Vérifiez le token
+            const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+            // On récupère les informations de l'utilisateur
+            const user = await User.findOne({
+                where: { id: payload.userId },
+                include: [
+                    { association: 'friends' },
+                ]
+            });
+
+            // On supprime le mot de passe de l'objet utilisateur avant de l'envoyer
+            delete user.password;
+
+            // On renvoie les infos de l'utilisateur
+            res.status(200).json({ user: user });
+
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Une erreur est survenue' });
+        }
+    },
+
     logoutUser: async (req, res) => {
         // Suppression des cookies
         res.clearCookie('token');
