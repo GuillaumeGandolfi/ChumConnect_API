@@ -23,10 +23,11 @@ router.delete('/user/:id', userController.deleteUser);
 router.post('/signup', AuthController.signupUser);
 router.post('/login', AuthController.loginUser);
 router.post('/logout', AuthController.logoutUser);
-router.post('/refresh-token', AuthController.refreshToken);
+// router.post('/refresh-token', AuthController.refreshToken);
 router.post('/delete-token', AuthController.deleteToken);
-router.get('/auth-status', AuthController.checkAuthStatus);
+// router.get('/auth-status', AuthController.checkAuthStatus);
 router.get('/current-user', AuthController.currentUser);
+router.post('/check-auth-status-and-refresh-token', AuthController.checkAuthStatusAndRefreshToken);
 
 /** Friends */
 router.post('/user/:id/send-friend-request', userController.sendFriendRequest);

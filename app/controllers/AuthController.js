@@ -120,6 +120,58 @@ const AuthController = {
         }
     },
 
+    checkAuthStatusAndRefreshToken: async (req, res) => {
+        try {
+            // on récupère les tokens dans les cookies
+            const token = req.cookies.token;
+            const refreshToken = req.cookies.refreshToken;
+            // On récupère les clés
+            const secretKey = process.env.JWT_SECRET_KEY;
+            const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY;
+
+            // On vérifie si le token est toujours actif
+            if (token) {
+                try {
+                    jwt.verify(token, secretKey);
+                    // Si le token est valide, on renvoie une réponse positive
+                    return res.status(200).json({ isAuthenticated: true });
+                } catch (error) {
+                    // Si l'erreur est due à une autre raison que l'expiration du token, 
+                    // on renvoie isAuthenticated: false
+                    if (error.name !== 'TokenExpiredError') {
+                        console.error(error);
+                        return res.status(401).json({ isAuthenticated: false, message: 'Invalid token' });
+                    }
+                }
+            }
+
+            // Si refreshToken n'est pas présent, on renvoie isAuthenticated: false
+            if (!refreshToken) {
+                return res.status(200).json({ isAuthenticated: false });
+            }
+
+            // Si le token n'est pas valide, on vérifie si le refreshToken est valide
+            const decodedRefreshToken = jwt.verify(refreshToken, refreshSecretKey);
+            // On récupère l'user
+            const user = await User.findByPk(decodedRefreshToken.userId);
+            if (!user) {
+                return res.status(401).json({ isAuthenticated: false, message: 'Invalid refresh token' });
+            }
+
+            const newAccessToken = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '30m' });
+            res.cookie('token', newAccessToken, {
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Strict',
+            });
+
+            res.status(200).json({ isAuthenticated: true, success: 'New access token generated' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ isAuthenticated: false, message: 'Internal Server Error' });
+        }
+    },
+
     currentUser: async (req, res) => {
         const token = req.cookies.token;
 
@@ -132,8 +184,7 @@ const AuthController = {
             const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
             // On récupère les informations de l'utilisateur
-            const user = await User.findOne({
-                where: { id: payload.userId },
+            const user = await User.findByPk(payload.userId, {
                 include: [
                     { association: 'friends' },
                 ]
@@ -147,10 +198,12 @@ const AuthController = {
             const userInfo = {
                 id: user.id,
                 email: user.email,
-                firstName: user.firstName,
+                firstname: user.firstname,
                 lastname: user.lastname,
                 age: user.age,
-                location: user.location,
+                city: user.city,
+                level: user.level,
+                experience: user.experience,
                 friends: user.friends,
             };
 
@@ -178,49 +231,6 @@ const AuthController = {
     },
 
 
-    refreshToken: async (req, res) => {
-        // Récupération du refreshToken depuis le corps de la requête
-        const refreshToken = req.cookies.refreshToken;
-        const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY;
-
-        // Vérification de la présence du refreshToken
-        if (!refreshToken) {
-            return res.status(400).json('Refresh token is required');
-        }
-
-        try {
-            // Décodage du refreshToken
-            const decodedRefreshToken = jwt.verify(refreshToken, refreshSecretKey);
-
-            // Vérification de la validité du token et de la correspondance avec un utilisateur
-            const user = await User.findByPk(decodedRefreshToken.userId);
-            if (!user) {
-                return res.status(401).json('Invalid refresh token');
-            }
-
-            // TODO : Lié refreshtoken et user dans la bdd, pour vérifier qu'il est toujours valide
-
-            // Génération d'un nouveau token d'accès
-            const secretKey = process.env.JWT_SECRET_KEY;
-            const newAccessToken = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '30m' });
-
-            // Envoi du nouveau token d'accès dans un cookie HttpOnly
-            res.cookie('token', newAccessToken, {
-                httpOnly: true,
-                secure: false, // mettre true quand sera en production
-                sameSite: 'Strict',
-            });
-
-            // Envoi d'une réponse de succès
-            res.status(200).json({ success: 'New access token generated' });
-        } catch (error) {
-            console.error(error);
-            // En cas d'erreur de vérification, il est préférable de renvoyer une réponse générique
-            // pour éviter de donner des informations sensibles
-            res.status(401).json('Unauthorized');
-        }
-    },
-
     deleteToken: async (req, res) => {
         try {
             // TODO : Invalider le token (quand j'aurai mis dans la bdd les refreshtoken)
@@ -232,30 +242,6 @@ const AuthController = {
             res.status(500).json({ error: 'An error occurred during logout' });
         }
     },
-
-    checkAuthStatus: async (req, res) => {
-        try {
-            // On vérifie la présence du refreshToken dans les cookies
-            const refreshToken = req.cookies.refreshToken;
-
-            // S'il n'est pas défini, on renvoie un état non authentifié 
-            if (!refreshToken) {
-                return res.status(200).json({ isAuthenticated: false });
-            }
-
-            // Utilisez le secret key pour vérifier la validité du refreshToken
-            const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY;
-            jwt.verify(refreshToken, refreshSecretKey);
-
-            // Si tout est en ordre, on renvoie un état authentifié
-            res.status(200).json({ isAuthenticated: true });
-        } catch (error) {
-            console.error(error);
-            // Si une erreur se produit, état non authentifié
-            res.status(200).json({ isAuthenticated: false });
-        }
-    },
-
 };
 
 export default AuthController;
