@@ -33,7 +33,10 @@ const tokenMiddleware = async (req, res, next) => {
             try {
                 // Si le token est expiré, on essaye de le rafraîchir
                 await AuthController.refreshToken(req, res);
-                // Si tout va bien, on passe au middleware suivant
+                // Si tout va bien, on déchiffre le nouveau token pour obtenir l'ID utilisateur
+                const decodedNewToken = jwt.verify(newToken, secretKey);
+                req.userId = decodedNewToken.userId;
+
                 next();
             } catch (refreshError) {
                 console.error(refreshError);

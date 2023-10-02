@@ -43,8 +43,6 @@ const eventController = {
     createEvent: async (req, res) => {
         try {
             // On récupère l'id de la personne qui créée l'event (organisateur)
-            // TODO : Pour l'instant j'utilise req.body mais plus tard un token sera mis en place
-            // TODO : avec ce token de connexion on récupérera l'id de l'user
             const userId = req.body.userId;
             const categoryId = req.body.categoryId;
             const { title, description, date, start_time, location } = req.body;
