@@ -120,7 +120,7 @@ const AuthController = {
         }
     },
 
-    checkAuthStatusAndRefreshToken: async (req, res) => {
+    verifyAndRefreshToken: async (req, res) => {
         try {
             // on récupère les tokens dans les cookies
             const token = req.cookies.token;
@@ -134,20 +134,20 @@ const AuthController = {
                 try {
                     jwt.verify(token, secretKey);
                     // Si le token est valide, on renvoie une réponse positive
-                    return res.status(200).json({ isAuthenticated: true });
+                    return { isAuthenticated: true };
                 } catch (error) {
                     // Si l'erreur est due à une autre raison que l'expiration du token, 
                     // on renvoie isAuthenticated: false
                     if (error.name !== 'TokenExpiredError') {
                         console.error(error);
-                        return res.status(401).json({ isAuthenticated: false, message: 'Invalid token' });
+                        return { isAuthenticated: false, message: 'Invalid token' };
                     }
                 }
             }
 
             // Si refreshToken n'est pas présent, on renvoie isAuthenticated: false
             if (!refreshToken) {
-                return res.status(200).json({ isAuthenticated: false });
+                return { isAuthenticated: false };
             }
 
             // Si le token n'est pas valide, on vérifie si le refreshToken est valide
@@ -155,21 +155,30 @@ const AuthController = {
             // On récupère l'user
             const user = await User.findByPk(decodedRefreshToken.userId);
             if (!user) {
-                return res.status(401).json({ isAuthenticated: false, message: 'Invalid refresh token' });
+                return { isAuthenticated: false, message: 'Invalid refresh token' };
             }
 
             const newAccessToken = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '30m' });
-            res.cookie('token', newAccessToken, {
+            req.newAccessToken = newAccessToken;
+            return { isAuthenticated: true, success: 'New access token generated' };
+        } catch (error) {
+            console.error(error);
+            return { isAuthenticated: false, message: 'Internal Server Error' };
+        }
+    },
+
+    checkAuthStatusAndRefreshToken: async (req, res) => {
+        const result = await AuthController.verifyAndRefreshToken(req);
+
+        // Si un nouveau token a été généré, on le défini comme cookie
+        if (req.newAccessToken) {
+            res.cookie('token', req.newAccessToken, {
                 httpOnly: true,
                 secure: false,
                 sameSite: 'Strict',
             });
-
-            res.status(200).json({ isAuthenticated: true, success: 'New access token generated' });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ isAuthenticated: false, message: 'Internal Server Error' });
         }
+        res.status(result.isAuthenticated ? 200 : 500).json(result);
     },
 
     currentUser: async (req, res) => {

@@ -1,51 +1,21 @@
-import association from '../models/association.js';
-const User = association.User;
-
 import AuthController from '../controllers/AuthController.js';
 
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-dotenv.config();
-
-const secretKey = process.env.JWT_SECRET_KEY || 'default-secret-key';
-const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY || 'default-refresh-secret-key';
 
 const tokenMiddleware = async (req, res, next) => {
-    const token = req.cookies.token; // Récupérer le token du cookie
+    const result = await AuthController.verifyAndRefreshToken(req);
 
-    if (!token) {
-        return res.status(401).json('Token introuvable');
+    if (!result.isAuthenticated) {
+        // Si l'utilisateur n'est pas authentifié,on retourne une erreur
+        return res.status(401).json({ error: result.message || 'Non autorisé' });
     }
 
-    try {
-        const decodedToken = jwt.verify(token, secretKey);
-        req.userId = decodedToken.userId;
+    // Si tout va bien, on stock l'ID de l'utilisateur dans la requête
+    const decodedToken = jwt.decode(req.cookies.token);
+    req.userId = decodedToken.userId;
 
-        const user = await User.findByPk(decodedToken.userId);
-        if (!user) {
-            return res.status(403).json('Association utilisateur / token introuvable');
-        }
-
-        next();
-    } catch (error) {
-        console.error(error);
-        if (error instanceof jwt.TokenExpiredError) {
-            try {
-                // Si le token est expiré, on essaye de le rafraîchir
-                await AuthController.refreshToken(req, res);
-                // Si tout va bien, on déchiffre le nouveau token pour obtenir l'ID utilisateur
-                const decodedNewToken = jwt.verify(newToken, secretKey);
-                req.userId = decodedNewToken.userId;
-
-                next();
-            } catch (refreshError) {
-                console.error(refreshError);
-                return res.status(500).json({ error: 'Une erreur est survenue lors du rafraîchissement du token' });
-            }
-        } else {
-            return res.status(401).json({ error: 'Non autorisé' });
-        }
-    }
+    // Si tout va bien, passez au middleware ou routeur suivant.
+    next();
 }
 
 export default tokenMiddleware;
